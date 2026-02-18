@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header/Header';
 import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-
+import './Dashboard.css'
 const Dashboard = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState({ name: 'User' });

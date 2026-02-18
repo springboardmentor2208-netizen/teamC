@@ -5,7 +5,7 @@ function Register() {
   return (
     <div>
       <Header/>
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+      <div className=" py-10 bg-[#fdecea] flex items-center justify-center px-5">
       <RegisterForm/>
       </div>
     </div>

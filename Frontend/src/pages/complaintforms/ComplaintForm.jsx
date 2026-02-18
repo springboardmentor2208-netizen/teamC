@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { Button } from '../../components/ui/button';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Header from '@/components/Header/Header';
 
 const ComplaintForm = () => {
     const navigate = useNavigate();
@@ -77,21 +78,24 @@ const ComplaintForm = () => {
     };
 
     return (
-        <div className="container mx-auto p-8 bg-gray-50 min-h-screen">
-            <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Report a Civic Issue</h1>
+        <div>
+            <Header/>
+        
+        <div className="container mx-auto p-8 bg-[#fdecea] min-h-screen">
+            <h1 className="block text-lg font-medium mb-1">Report a Civic Issue</h1>
 
-            <div className="bg-white p-8 rounded-lg shadow-md max-w-4xl mx-auto">
-                <h2 className="text-xl font-semibold mb-6 text-gray-700">Issue Details</h2>
+            <div className="bg-white p-8 rounded-2xl shadow-md max-w-4xl mx-auto">
+                <h2 className="block text-lg font-medium mb-1">Issue Details</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Issue Title</label>
+                            <label className="block text-lg font-medium mb-1">Issue Title</label>
                             <input
                                 type="text"
                                 name="title"
                                 placeholder="Brief description of the issue"
-                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition-colors"
+                                className="w-full p-2 border border-gray-300 rounded-md hover:border-black transition-colors"
                                 value={formData.title}
                                 onChange={handleChange}
                                 required
@@ -99,10 +103,10 @@ const ComplaintForm = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Issue Type</label>
+                            <label className="block text-lg font-medium mb-1">Issue Type</label>
                             <select
                                 name="issueType"
-                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition-colors"
+                                className="w-full p-2 border border-gray-300 rounded-md hover:border-black transition-colors"
                                 value={formData.issueType}
                                 onChange={handleChange}
                                 required
@@ -117,10 +121,10 @@ const ComplaintForm = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Priority Level</label>
+                            <label className="block text-lg font-medium mb-1">Priority Level</label>
                             <select
                                 name="priority"
-                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition-colors"
+                                className="w-full p-2 border border-gray-300 rounded-md hover:border-black transition-colors"
                                 value={formData.priority}
                                 onChange={handleChange}
                                 required
@@ -134,12 +138,12 @@ const ComplaintForm = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <label className="block text-lg font-medium mb-1">Address</label>
                             <input
                                 type="text"
                                 name="address"
                                 placeholder="Enter street address"
-                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition-colors"
+                                className="w-full p-2 border border-gray-300 rounded-md hover:border-black transition-colors"
                                 value={formData.address}
                                 onChange={handleChange}
                                 required
@@ -148,24 +152,24 @@ const ComplaintForm = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Nearby Landmark (Optional)</label>
+                        <label className="block text-lg font-medium mb-1">Nearby Landmark (Optional)</label>
                         <input
                             type="text"
                             name="landmark"
                             placeholder="e.g., Near City Hall"
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition-colors"
+                            className="w-full p-2 border border-gray-300 rounded-md hover:border-black transition-colors"
                             value={formData.landmark}
                             onChange={handleChange}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-lg font-medium mb-1">Description</label>
                         <textarea
                             name="description"
                             rows="4"
                             placeholder="Describe the issue in detail..."
-                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition-colors"
+                            className="w-full p-2 border border-gray-300 rounded-md hover:border-black transition-colors"
                             value={formData.description}
                             onChange={handleChange}
                             required
@@ -173,7 +177,7 @@ const ComplaintForm = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Location on Map</label>
+                        <label className="block text-lg font-medium mb-1">Location on Map</label>
                         <div className="h-64 w-full rounded-md overflow-hidden border border-gray-300 relative z-0">
                             <MapContainer center={[40.7128, -74.0060]} zoom={13} style={{ height: '100%', width: '100%' }}>
                                 <TileLayer
@@ -183,16 +187,17 @@ const ComplaintForm = () => {
                                 <LocationMarker />
                             </MapContainer>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Click on the map to mark the exact location</p>
+                        <p className="text-sm text-gray-500 mt-1">Click on the map to mark the exact location</p>
                     </div>
 
                     <div className="flex justify-center mt-6">
-                        <Button type="submit" className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-md transition duration-300 shadow-md">
+                        <button type="submit" className="w-[500px] px-6 py-3 text-lg hover:scale-105 mr-3 font-semibold text-white transition bg-[#f56551] rounded-full shadow-lg hover:bg-[#C9442A] transition-duration-200">
                             Submit Report
-                        </Button>
+                        </button>
                     </div>
                 </form>
             </div>
+        </div>
         </div>
     );
 };

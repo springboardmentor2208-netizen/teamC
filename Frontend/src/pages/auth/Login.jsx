@@ -5,10 +5,9 @@ function Login() {
   return (
     <div>
       <Header/>
-       <div className="flex justify-center items-center h-[80vh] bg-gray-100">
+       <div className="flex justify-center items-center pb-[250px] pt-[120px] bg-[#fdecea]">
         <LoginForm />
       </div>
-      Login
     </div>
   )
 }

@@ -37,8 +37,8 @@ const Header = () => {
             </div>
           ) : (
             <>
-              <Link to="/login"><Button className="px-6 py-3 text-lg mr-3 font-semibold text-white transition bg-[#f56551] rounded-full shadow-lg hover:bg-blue-700 transition-duration-200">Login</Button></Link>
-              <Link to="/register"><Button className="px-6 py-3 text-lg font-semibold text-white transition bg-[#f56551] rounded-full shadow-lg hover:bg-blue-700 transition-duration-200">Register</Button></Link>
+              <Link to="/login"><Button className="px-6 py-3 w-[130px] text-lg mr-3 font-semibold text-white bg-[#f56551] rounded-full hover:bg-[#C9442A] hover:scale-110">Login</Button></Link>
+              <Link to="/register"><Button className="px-6 py-3 w-[130px] text-lg mr-3 font-semibold text-white bg-[#f56551] rounded-full hover:bg-[#C9442A] hover:scale-110">Register</Button></Link>
             </>
           )}
         </div>
