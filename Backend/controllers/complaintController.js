@@ -119,10 +119,11 @@ const createComplaint = asyncHandler(async (req, res) => {
 
     // Auto-assignment logic: Find volunteer in same location (simple string match on address)
     // In a real app, this would use geospatial query on location_coords
-    const volunteer = await User.findOne({
+    const addressKeyword = req.body.address ? req.body.address.split(' ')[0] : '';
+    const volunteer = addressKeyword ? await User.findOne({
         role: 'volunteer',
-        location: { $regex: new RegExp(req.body.address.split(' ')[0], 'i') } // Match city/area loosely
-    });
+        location: { $regex: new RegExp(addressKeyword, 'i') } // Match city/area loosely
+    }) : null;
 
     const complaint = await Complaint.create({
         user_id: req.user.id,
@@ -177,6 +178,9 @@ const updateComplaint = asyncHandler(async (req, res) => {
 const deleteComplaint = asyncHandler(async (req, res) => {
     const complaintId = req.params.id.trim();
 
+    console.log(`[DELETE] Request to delete complaint ID: ${complaintId}`);
+    console.log(`[DELETE] Requesting user ID: ${req.user?.id}, role: ${req.user?.role}`);
+
     // Check for user
     if (!req.user) {
         res.status(401);
@@ -187,17 +191,40 @@ const deleteComplaint = asyncHandler(async (req, res) => {
         const complaint = await Complaint.findById(complaintId);
 
         if (!complaint) {
+            console.log(`[DELETE] Complaint ${complaintId} not found in DB`);
             res.status(404);
             throw new Error('Complaint not found (findById failed)');
         }
 
-        // Allow delete if user is owner OR admin
-        if (complaint.user_id.toString() !== req.user.id && req.user.role !== 'admin') {
+        // Log exact values for debugging
+        const storedOwnerIdStr = complaint.user_id ? complaint.user_id.toString() : 'null';
+        const requestingUserIdStr = req.user.id ? req.user.id.toString() : 'null';
+        console.log(`[DELETE] Complaint owner user_id (raw): "${storedOwnerIdStr}"`);
+        console.log(`[DELETE] Requesting user id (from JWT): "${requestingUserIdStr}"`);
+        console.log(`[DELETE] IDs match: ${storedOwnerIdStr === requestingUserIdStr}`);
+
+        // Allow delete if user is owner (by user_id OR legacy user field) OR admin
+        const isOwner = storedOwnerIdStr === requestingUserIdStr ||
+            (complaint.user && complaint.user.toString() === requestingUserIdStr);
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isOwner && !isAdmin) {
+            console.log(`[DELETE] Authorization failed — not owner and not admin`);
             res.status(401);
             throw new Error('User not authorized');
         }
+        console.log(`[DELETE] Authorization passed (isOwner: ${isOwner}, isAdmin: ${isAdmin})`);
 
-        await Complaint.findByIdAndDelete(complaintId);
+        const result = await Complaint.findByIdAndDelete(complaintId);
+        console.log(`[DELETE] findByIdAndDelete result:`, result ? `Deleted doc with id ${result._id}` : 'null (not found)');
+
+        // Verify deletion
+        const stillExists = await Complaint.findById(complaintId);
+        if (stillExists) {
+            console.error(`[DELETE] ERROR: Complaint ${complaintId} still exists after delete!`);
+        } else {
+            console.log(`[DELETE] SUCCESS: Complaint ${complaintId} confirmed deleted from DB`);
+        }
 
         res.status(200).json({ id: complaintId });
 
