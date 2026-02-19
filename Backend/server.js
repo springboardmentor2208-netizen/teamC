@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/api/users', require('./routes/authRoutes'));
 app.use('/api/complaints', require('./routes/complaintRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/', (req, res) => res.send('API is running...'));
 

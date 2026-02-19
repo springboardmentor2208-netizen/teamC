@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import ViewComplaints from './pages/ViewComplaints'
 
+
+
 function AppRoute() {
   return (
     <div>
@@ -19,6 +21,7 @@ function AppRoute() {
         <Route path='/dashboard' element={<Dashboard />} />
         <Route path='/profile' element={<Profile />} />
         <Route path='/view-complaints' element={<ViewComplaints />} />
+
       </Routes>
     </div>
   )

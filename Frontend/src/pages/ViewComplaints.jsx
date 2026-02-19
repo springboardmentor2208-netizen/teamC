@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header/Header';
 import { Button } from '../components/ui/button';
-import { ThumbsUp, ThumbsDown, MessageSquare, MapPin, Clock, Send } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, MessageSquare, MapPin, Clock, Send, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -11,6 +11,8 @@ const ViewComplaints = () => {
     const [expandedComments, setExpandedComments] = useState({}); // Map of complaintId -> boolean
     const [newComments, setNewComments] = useState({}); // Map of complaintId -> string
     const [user, setUser] = useState(null);
+    const [editingComplaint, setEditingComplaint] = useState(null);
+    const [editForm, setEditForm] = useState({ title: '', description: '', address: '' });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -20,7 +22,7 @@ const ViewComplaints = () => {
                 const storedUser = localStorage.getItem('user');
                 const token = storedUser ? JSON.parse(storedUser).token : null;
 
-                // Keep it simple for now, refine if needed
+                console.log('Fetching complaints from API...');
                 const response = await axios.get('http://localhost:5000/api/complaints');
                 setComplaints(response.data);
             } catch (error) {
@@ -57,6 +59,74 @@ const ViewComplaints = () => {
         } catch (error) {
             console.error('Error voting:', error);
             alert('Failed to vote');
+        }
+    };
+
+    const handleStatusUpdate = async (id, newStatus) => {
+        try {
+            const token = user ? user.token : null;
+            if (!token) return;
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+
+            const response = await axios.put(`http://localhost:5000/api/complaints/${id}`, { status: newStatus }, config);
+
+            // Update local state - response might be the raw complaint, need to keep aggregated fields if possible
+            // But usually put returns the doc. The UI might flicker if we replace full object without re-fetching aggregation.
+            // For simplicity, we just update the status field locally or reload.
+            setComplaints(complaints.map(c => c._id === id ? { ...c, status: newStatus } : c));
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Failed to update status');
+        }
+    };
+
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this complaint?')) return;
+        try {
+            const token = user ? user.token : null;
+            if (!token) return;
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+
+            await axios.delete(`http://localhost:5000/api/complaints/${id}`, config);
+            setComplaints(complaints.filter(c => c._id !== id));
+            alert('Complaint deleted successfully');
+        } catch (error) {
+            console.error('Error deleting complaint:', error);
+            alert('Failed to delete complaint');
+        }
+    };
+
+    const startEditing = (complaint) => {
+        setEditingComplaint(complaint._id);
+        setEditForm({
+            title: complaint.title,
+            description: complaint.description,
+            address: complaint.address
+        });
+    };
+
+    const cancelEditing = () => {
+        setEditingComplaint(null);
+        setEditForm({ title: '', description: '', address: '' });
+    };
+
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const token = user ? user.token : null;
+            if (!token) return;
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+
+            await axios.put(`http://localhost:5000/api/complaints/${editingComplaint}`, editForm, config);
+
+            // Update local state
+            setComplaints(complaints.map(c => c._id === editingComplaint ? { ...c, ...editForm } : c));
+            cancelEditing();
+            alert('Complaint updated successfully');
+        } catch (error) {
+            console.error('Error updating complaint:', error);
+            alert('Failed to update complaint');
         }
     };
 
@@ -107,7 +177,7 @@ const ViewComplaints = () => {
             case 'resolved': return 'bg-green-100 text-green-800 border-green-200';
             case 'in_progress': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
             case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
-            default: return 'bg-blue-100 text-blue-800 border-blue-200'; // received/pending
+            default: return 'bg-blue-100 text-blue-800 border-blue-200'; // received
         }
     };
 
@@ -127,9 +197,10 @@ const ViewComplaints = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800">
             <Header />
-            <div className="flex-grow container mx-auto px-4 sm:px-6 py-8">
+
+            <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
 
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-6">Voting buttons & Comment session</h1>
@@ -192,15 +263,112 @@ const ViewComplaints = () => {
                                             </h3>
                                         </div>
                                     </div>
-                                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap capitalize ${getStatusColor(complaint.status)}`}>
-                                        {complaint.status === 'pending' ? 'Received' : complaint.status.replace('_', ' ')}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border whitespace-nowrap capitalize ${getStatusColor(complaint.status)}`}>
+                                            {complaint.status === 'received' ? 'Received' : complaint.status.replace('_', ' ')}
+                                        </span>
+                                        {complaint.assigned_to && complaint.assigned_to !== 'Unassigned' && (
+                                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                Assigned: {complaint.assigned_to}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Status Update for Admin/Volunteer */}
+                                    {user && (user.role === 'admin' || user.role === 'volunteer') && (
+                                        <div className="mt-2 flex justify-end">
+                                            <select
+                                                value={complaint.status}
+                                                onChange={(e) => handleStatusUpdate(complaint._id, e.target.value)}
+                                                className="text-xs border border-gray-300 rounded px-2 py-1 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            >
+                                                <option value="received">Received</option>
+                                                <option value="in_review">In Review</option>
+                                                <option value="resolved">Resolved</option>
+                                                <option value="rejected">Rejected</option>
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {/* Edit/Delete for Owner or Admin */}
+
+                                    {user && (
+                                        <div className="flex justify-end gap-2 mt-2">
+                                            {/* Allow owner or admin to delete */}
+                                            {/* Note: complaint.user is user object from aggregation, user_id is the ID field */}
+                                            {(String(user._id) === String(complaint.user?._id || complaint.user_id) || user.role === 'admin') && (
+                                                <button
+                                                    onClick={() => handleDelete(complaint._id)}
+                                                    className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1.5 rounded transition-colors"
+                                                    title="Delete Complaint"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
+                                            {/* Allow owner OR ADMIN to edit */}
+                                            {(String(user._id) === String(complaint.user?._id || complaint.user_id) || user.role === 'admin') && (
+                                                <button
+                                                    onClick={() => startEditing(complaint)}
+                                                    className="text-xs text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-2 py-1 rounded"
+                                                >
+                                                    Edit
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Description */}
-                                <p className="text-gray-600 text-sm mb-4 line-clamp-3 ml-8">
-                                    {complaint.description}
-                                </p>
+                                {/* Edit Form or Description */}
+                                {editingComplaint === complaint._id ? (
+                                    <form onSubmit={handleEditSubmit} className="mb-4 bg-gray-50 p-4 rounded-md border border-gray-200">
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700">Title</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.title}
+                                                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                                    className="w-full text-sm p-1 border rounded"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700">Description</label>
+                                                <textarea
+                                                    value={editForm.description}
+                                                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                                    className="w-full text-sm p-1 border rounded"
+                                                    rows="3"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-700">Address</label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.address}
+                                                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                                    className="w-full text-sm p-1 border rounded"
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="flex gap-2 justify-end pt-2">
+                                                <button type="button" onClick={cancelEditing} className="px-3 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+                                                <button type="submit" className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 ml-8">
+                                        {complaint.description}
+                                    </p>
+                                )}
+
+                                {complaint.photo && (
+                                    <div className="mb-4">
+                                        <img src={complaint.photo} alt={complaint.title} className="w-full h-48 object-cover rounded-lg border border-gray-200" />
+                                    </div>
+                                )}
 
                                 {/* Meta Info */}
                                 <div className="mt-auto ml-8">
@@ -224,8 +392,8 @@ const ViewComplaints = () => {
                                             <button
                                                 onClick={() => handleVote(complaint._id, 'upvote')}
                                                 className={`flex items-center gap-1.5 text-sm transition-colors px-2 py-1 rounded hover:bg-gray-50 ${complaint.upvotes && user && complaint.upvotes.includes(user._id || user.id)
-                                                        ? 'text-blue-600 font-medium'
-                                                        : 'text-gray-500 hover:text-gray-700'
+                                                    ? 'text-blue-600 font-medium'
+                                                    : 'text-gray-500 hover:text-gray-700'
                                                     }`}
                                             >
                                                 <ThumbsUp size={16} fill={complaint.upvotes && user && complaint.upvotes.includes(user._id || user.id) ? "currentColor" : "none"} />
@@ -235,8 +403,8 @@ const ViewComplaints = () => {
                                             <button
                                                 onClick={() => handleVote(complaint._id, 'downvote')}
                                                 className={`flex items-center gap-1.5 text-sm transition-colors px-2 py-1 rounded hover:bg-gray-50 ${complaint.downvotes && user && complaint.downvotes.includes(user._id || user.id)
-                                                        ? 'text-red-600 font-medium'
-                                                        : 'text-gray-500 hover:text-gray-700'
+                                                    ? 'text-red-600 font-medium'
+                                                    : 'text-gray-500 hover:text-gray-700'
                                                     }`}
                                             >
                                                 <ThumbsDown size={16} fill={complaint.downvotes && user && complaint.downvotes.includes(user._id || user.id) ? "currentColor" : "none"} />
@@ -303,7 +471,7 @@ const ViewComplaints = () => {
                         ))}
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 };
