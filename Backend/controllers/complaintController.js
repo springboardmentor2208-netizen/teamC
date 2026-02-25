@@ -128,6 +128,7 @@ const createComplaint = asyncHandler(async (req, res) => {
     const complaint = await Complaint.create({
         user_id: req.user.id,
         title: req.body.title,
+        issueType: req.body.issueType,
         description: req.body.description,
         address: req.body.address,
         location_coords: req.body.location ? { lat: req.body.location.lat, lng: req.body.location.lng } : undefined,

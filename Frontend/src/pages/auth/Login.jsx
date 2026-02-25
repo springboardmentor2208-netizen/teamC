@@ -1,16 +1,18 @@
-import Header from '@/components/Header/Header'
-import React from 'react'
-import LoginForm from '../../components/Header/auth/LoginForm'
+import React from 'react';
+import Header from '../../components/Header/Header';
+import LoginForm from '../../components/Header/auth/LoginForm';
+
 function Login() {
   return (
-    <div>
-      <Header/>
-       <div className="flex justify-center items-center h-[80vh] bg-gray-100">
-        <LoginForm />
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Header />
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md animate-slide-up">
+          <LoginForm />
+        </div>
       </div>
-      Login
     </div>
-  )
+  );
 }
 
-export default Login
+export default Login;
