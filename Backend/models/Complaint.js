@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const complaintSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     title: String,
+    issueType: String,
     description: String,
     photo: String,
     location_coords: { lat: Number, lng: Number },
