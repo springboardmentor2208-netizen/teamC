@@ -74,7 +74,7 @@ export default function LoginForm() {
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', form);
       localStorage.setItem('user', JSON.stringify(res.data));
-      navigate('/dashboard');
+      res.data.role === 'admin' ? navigate('/admin') : navigate('/dashboard');
     } catch (err) {
       setApiError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally { setLoading(false); }
