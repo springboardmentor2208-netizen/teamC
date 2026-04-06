@@ -25,6 +25,10 @@ const Header = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Pages where nav links should be hidden
+  const hideNavPages = ['/', '/login', '/register'];
+  const shouldHideNav = hideNavPages.includes(location.pathname);
+
   // Link style helper
   const linkClass = (path) =>
     `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive(path)
@@ -54,13 +58,15 @@ const Header = () => {
         </Link>
 
         {/* ── Desktop Nav ── */}
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map(({ to, label, icon }) => (
-            <Link key={to} to={to} className={linkClass(to)}>
-              {icon} {label}
-            </Link>
-          ))}
-        </div>
+        {!shouldHideNav && (
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map(({ to, label, icon }) => (
+              <Link key={to} to={to} className={linkClass(to)}>
+                {icon} {label}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* ── Auth Actions ── */}
         <div className="hidden md:flex items-center gap-2">
@@ -111,13 +117,13 @@ const Header = () => {
       {/* ── Mobile Menu ── */}
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-slide-down">
-          {navLinks.map(({ to, label, icon }) => (
+          {!shouldHideNav && navLinks.map(({ to, label, icon }) => (
             <Link key={to} to={to} onClick={() => setMenuOpen(false)}
               className={`${linkClass(to)} w-full`}>
               {icon} {label}
             </Link>
           ))}
-          <div className="pt-2 border-t border-gray-100 mt-2 flex flex-col gap-2">
+          <div className={`${!shouldHideNav ? 'pt-2 border-t border-gray-100 mt-2 ' : ''}flex flex-col gap-2`}>
             {user ? (
               <>
                 <div className="flex items-center gap-2 px-3 py-2">
