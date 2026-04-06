@@ -25,6 +25,9 @@ const Header = () => {
 
   const isActive = (path) => location.pathname === path;
 
+  // Hide nav links on landing, login, and register pages
+  const hideNavLinks = ['/', '/login', '/register'].includes(location.pathname);
+
   // Link style helper
   const linkClass = (path) =>
     `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive(path)
@@ -55,7 +58,7 @@ const Header = () => {
 
         {/* ── Desktop Nav ── */}
         <div className="hidden md:flex items-center gap-1">
-          {navLinks.map(({ to, label, icon }) => (
+          {!hideNavLinks && navLinks.map(({ to, label, icon }) => (
             <Link key={to} to={to} className={linkClass(to)}>
               {icon} {label}
             </Link>
@@ -111,7 +114,7 @@ const Header = () => {
       {/* ── Mobile Menu ── */}
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1 animate-slide-down">
-          {navLinks.map(({ to, label, icon }) => (
+          {!hideNavLinks && navLinks.map(({ to, label, icon }) => (
             <Link key={to} to={to} onClick={() => setMenuOpen(false)}
               className={`${linkClass(to)} w-full`}>
               {icon} {label}
