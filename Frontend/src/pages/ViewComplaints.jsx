@@ -12,6 +12,7 @@ const ViewComplaints = () => {
     const [user, setUser] = useState(null);
     const [editingComplaint, setEditingComplaint] = useState(null);
     const [editForm, setEditForm] = useState({ title: '', description: '', address: '' });
+    const [filter, setFilter] = useState('All Status');
 
     useEffect(() => {
         const fetchComplaints = async () => {
@@ -99,6 +100,14 @@ const ViewComplaints = () => {
 
     const issueEmoji = (type) => ({ pothole: '🕳️', street_light: '💡', water_leakage: '💧', garbage: '🗑️' }[type] || '📢');
 
+    const filteredComplaints = complaints.filter(complaint => {
+        if (filter === 'All Status') return true;
+        if (filter === 'Pending') return complaint.status === 'received' || complaint.status === 'pending';
+        if (filter === 'In Review') return complaint.status === 'in_review' || complaint.status === 'in_progress';
+        if (filter === 'Resolved') return complaint.status === 'resolved';
+        return false;
+    });
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Header />
@@ -111,7 +120,17 @@ const ViewComplaints = () => {
                 {/* Filters */}
                 <div className="flex gap-3 mb-7 flex-wrap">
                     {['All Status', 'Pending', 'In Review', 'Resolved'].map(f => (
-                        <button key={f} className="px-4 py-2 text-sm bg-white border border-gray-200 text-gray-600 rounded-lg hover:border-primary/40 hover:text-primary transition-all">{f}</button>
+                        <button 
+                            key={f} 
+                            onClick={() => setFilter(f)}
+                            className={`px-4 py-2 text-sm border rounded-lg transition-all ${
+                                filter === f 
+                                ? 'bg-primary/10 border-primary text-primary font-semibold' 
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-primary/40 hover:text-primary'
+                            }`}
+                        >
+                            {f}
+                        </button>
                     ))}
                 </div>
 
@@ -126,9 +145,14 @@ const ViewComplaints = () => {
                             <button className="mt-4 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-sm">Be the first to report!</button>
                         </Link>
                     </div>
+                ) : filteredComplaints.length === 0 ? (
+                    <div className="text-center py-20 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                        <p className="text-gray-400 text-lg font-medium">No community reports found with the selected filter.</p>
+                        <button onClick={() => setFilter('All Status')} className="mt-4 bg-primary/10 text-primary hover:bg-primary/20 px-6 py-3 rounded-xl font-semibold transition-all shadow-sm">Clear Filter</button>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                        {complaints.map((complaint) => (
+                        {filteredComplaints.map((complaint) => (
                             <div key={complaint._id} className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col p-6">
                                 {/* Card Header */}
                                 <div className="flex justify-between items-start gap-4 mb-3">

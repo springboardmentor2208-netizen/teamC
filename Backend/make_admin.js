@@ -9,9 +9,6 @@ const makeAdmin = async () => {
         const conn = await mongoose.connect(process.env.MONGO_URI);
         console.log(`MongoDB Connected: ${conn.connection.host}`);
 
-        // Find user by email (from screenshot context or generic)
-        // I will try to find "sarvaghna reddy" by name or just pick the first user
-        // Ideally prompt for email, but I'll search for the name seen in screenshot
         const user = await User.findOne({ name: 'Teena K' });
 
         if (user) {
